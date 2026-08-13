@@ -1,0 +1,14 @@
+name: OUT LAN Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - out/lan-coop-bootstrap
+
+jobs:
+  build-windows:
+    uses: ./.github/workflows/windows.yml
+    with:
+      build-mode: release
+      upload-build-for-next-job: true
