@@ -61,7 +61,7 @@ jobs:
         uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: 3.0.9
-          actions-cache-folder: '.xmake-cache' # This doesn't cache dependencies, only xmake itself
+          actions-cache-folder: '.xmake-cache'
           actions-cache-key: ${{ matrix.os }}
 
       - name: Configure xmake and install dependencies
@@ -80,7 +80,6 @@ jobs:
           cp -Force -Recurse distrib/bin/* ${{ env.STR_BUILD_DIR }}
 
       # Building the Together UI
-
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -100,7 +99,11 @@ jobs:
           cp -r Code/skyrim_ui/dist/UI ${{ env.STR_BUILD_DIR }}
 
       - id: output-version
-        run: echo "version=$(git describe --tags)" >> $env:GITHUB_OUTPUT
+        shell: pwsh
+        run: |
+          $version = (git describe --tags --always --dirty).Trim()
+          if (-not $version) { $version = (git rev-parse --short HEAD).Trim() }
+          "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Upload build files for the next job
         if: ${{ inputs.upload-build-for-next-job }}
