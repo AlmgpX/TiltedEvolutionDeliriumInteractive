@@ -1,0 +1,30 @@
+# OUT LAN co-op configuration
+# Phase 0/1: configuration scaffold. Runtime wiring comes in later commits.
+
+[network]
+port = 10578
+max_players = 2
+lan_only = true
+auto_party_join = true
+server_name = "Delirium LAN"
+
+[authority]
+# Keep world simulation deterministic for the 2-player home-LAN target.
+world_owner = "host"
+npc_owner = "host"
+quest_owner = "host"
+container_owner = "host"
+weather_owner = "host"
+
+[sync]
+players = true
+actors = true
+combat = true
+quests = true
+containers = false
+calendar = false
+player_homes = false
+
+[debug]
+log_build_mismatch = true
+log_network_events = false
