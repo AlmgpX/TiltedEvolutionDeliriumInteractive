@@ -12,3 +12,54 @@ jobs:
     with:
       build-mode: release
       upload-build-for-next-job: true
+
+  package-playable:
+    runs-on: windows-2022
+    needs: build-windows
+    steps:
+      - name: Download compiled STR files
+        uses: actions/download-artifact@v5
+        with:
+          name: internal-job-files
+          path: staging
+
+      - name: Create game-root package
+        shell: pwsh
+        run: |
+          $runtime = "staging/build/windows/x64/release"
+          $gameFiles = "staging/GameFiles/Skyrim"
+          $package = "OUT-LAN-Playable"
+          $data = Join-Path $package "Data"
+          $str = Join-Path $data "SkyrimTogetherReborn"
+
+          if (-not (Test-Path $runtime)) { throw "Compiled STR runtime not found: $runtime" }
+          if (-not (Test-Path $gameFiles)) { throw "Skyrim game files not found: $gameFiles" }
+
+          New-Item -ItemType Directory -Force -Path $str | Out-Null
+          Copy-Item "$runtime/*" $str -Recurse -Force
+          Copy-Item "$gameFiles/*" $data -Recurse -Force
+
+          @"
+          OUT LAN PLAYABLE BUILD
+          ======================
+
+          INSTALL:
+          Extract the CONTENTS of this package into the Skyrim Special Edition game root.
+          The included Data folder must merge with the existing Skyrim Special Edition\Data folder.
+
+          Expected client executable:
+          Data\SkyrimTogetherReborn\SkyrimTogether.exe
+
+          Expected server executable:
+          Data\SkyrimTogetherReborn\SkyrimTogetherServer.exe
+
+          Default server port: 10578 UDP
+          Build: ${{ needs.build-windows.outputs.str-version }}
+          "@ | Set-Content -Encoding UTF8 (Join-Path $package "OUT-LAN-INSTALL.txt")
+
+      - name: Upload playable OUT LAN package
+        uses: actions/upload-artifact@v4
+        with:
+          name: OUT-LAN-Playable-${{ needs.build-windows.outputs.str-version }}
+          retention-days: 30
+          path: OUT-LAN-Playable/
